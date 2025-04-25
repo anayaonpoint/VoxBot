@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Journal</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+ :root {
+      --bg-color: #f4f6f9;
+      --text-color: #333;
+      --card-bg: #fff;
+      --input-bg: #fff;
+      --entry-bg: #f9f9f9;
+      --accent: #00a8a8; /* Changed to match your main accent color */
+    }
+
+    body.dark-mode {
+      --bg-color: #1e1e1e;
+      --text-color: #e0e0e0;
+      --card-bg: #2b2b2b;
+      --input-bg: #333;
+      --entry-bg: #2c2c2c;
+      --accent: #4834d4; /* Dark mode accent color */
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 20px;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    .container {
+      max-width: 700px;
+      margin: auto;
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      font-size: 2em;
+      margin-bottom: 10px;
+    }
+
+    textarea, input {
+      width: 100%;
+      padding: 12px;
+      margin-top: 8px;
+      margin-bottom: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+      resize: vertical;
+      font-size: 1em;
+      background-color: var(--input-bg);
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    button {
+      background-color: var(--accent);
+      color: #fff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background-color: #4834d4;
+    }
+
+    .entry {
+      background: var(--entry-bg);
+      border-left: 4px solid var(--accent);
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 12px;
+    }
+
+    .entry p {
+      margin: 4px 0;
+    }
+
+    .entry-time {
+      font-size: 0.85em;
+      color: #888;
+    }
+
+    .entry-mood {
+      font-weight: bold;
+    }
+
+    .toggle-dark {
+      float: right;
+      background: none;
+      border: none;
+      color: var(--text-color);
+      cursor: pointer;
+      font-size: 1em;
+      margin-bottom: 10px;
+    }  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Toggle Dark Mode</button>
+    <h1>📝 My Journal</h1>
+    <textarea id="content" placeholder="What's on your mind today?" rows="6"></textarea>
+    <input id="mood" placeholder="Your mood (happy, sad, etc)" />
+    <button onclick="saveJournal()">Save Entry</button>
+
+    <!-- Mood chart -->
+    <h2 style="margin-top: 40px;">📊 Mood Over the Week</h2>
+    <canvas id="moodChart" width="400" height="200"></canvas>
+
+    <h2 style="margin-top: 40px;">📚 Previous Entries</h2>
+    <div id="entries"></div>
+  </div>
+
+  <script>
+    async function saveJournal() {
+      const content = document.getElementById('content').value.trim();
+      const mood = document.getElementById('mood').value.trim();
+
+      if (!content || !mood) {
+        alert("Please fill out both journal and mood.");
+        return;
+      }
+
+      const response = await fetch('/save_journal/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content, mood })
+      });
+
+      const data = await response.json();
+      if (data.message) {
+        document.getElementById('content').value = '';
+        document.getElementById('mood').value = '';
+        loadJournalEntries();
+        loadMoodChart();  // Refresh the mood chart after saving a journal entry
+      } else {
+        alert("Error: " + data.error);
+      }
+    }
+
+    async function loadJournalEntries() {
+      const response = await fetch('/get_journal_entries/');
+      const entries = await response.json();
+      const container = document.getElementById('entries');
+      container.innerHTML = '';
+      entries.forEach(entry => {
+        container.innerHTML += `
+          <div class="entry">
+            <p class="entry-time">${entry.timestamp}</p>
+            <p class="entry-mood">Mood: ${entry.mood}</p>
+            <p>${entry.content}</p>
+          </div>
+        `;
+      });
+    }
+
+    // Function to load mood data and update the chart
+    async function loadMoodChart() {
+      const response = await fetch('/get_mood_data/');
+      const data = await response.json();
+
+      const moodData = data.mood_data;
+      const labels = data.labels;
+
+      // Create the chart
+      const ctx = document.getElementById('moodChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Mood Count',
+            data: [
+              moodData['happy'],
+              moodData['sad'],
+              moodData['neutral']
+            ],
+            backgroundColor: [
+              'rgba(76, 175, 80, 0.6)', // Green for happy
+              'rgba(244, 67, 54, 0.6)', // Red for sad
+              'rgba(255, 235, 59, 0.6)' // Yellow for neutral
+            ],
+            borderColor: [
+              'rgba(76, 175, 80, 1)',
+              'rgba(244, 67, 54, 1)',
+              'rgba(255, 235, 59, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
+        }
+      });
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+    }
+
+    window.onload = function() {
+      loadJournalEntries();
+      loadMoodChart();  // Load the mood chart on page load
+    };
+  </script>
+</body>
+</html>

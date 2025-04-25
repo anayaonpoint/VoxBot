@@ -1,0 +1,625 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoxBot</title>
+<link rel="apple-touch-icon" sizes="180x180" href="{% static 'apple-touch-icon.png' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon-32x32.png' %}">
+<link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon-16x16.png' %}">
+<link rel="manifest" href="{% static 'site.webmanifest' %}">
+
+<style>
+.html, body {
+margin: 0; /* Remove default margins */
+padding: 0; /* Remove default padding */
+height: 100%; /* Ensure the body fills the viewport */
+overflow-y: auto; /* Scroll only when content exceeds the viewport */
+}
+
+body {
+font-family: 'Roboto', Arial, sans-serif;
+background: var(--background);
+margin: 0;
+padding: 0;
+display: flex;
+justify-content: left;
+align-items: center;
+min-height: 0vh;
+color: var(--text-color);
+transition: background 0.3s, color 0.3s;
+}
+
+:root {
+--background: #abb9c8;
+--text-color: #444;
+--main-bg: #ffffff;
+--chat-bubble-user: #61606a;
+--chat-bubble-bot: #105e5e;
+--history-bg: rgba(255, 255, 255, 0.95);
+}
+
+.dark-mode {
+--background: #2d3436;
+--text-color: #dfe6e9;
+--main-bg: #34495e;
+--chat-bubble-user: #4834d4;
+--chat-bubble-bot: #00a8a8;
+--history-bg: rgba(52, 73, 94, 0.95);
+}
+
+.main {
+text-align: center;
+background-color: var(--main-bg);
+padding: 150px;
+border-radius: 20px;
+box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+width: 90%;
+max-width: 800px;
+transition: transform 0.3s, background 0.3s;
+margin: 10px;
+position: relative;
+}
+
+.main:hover {
+transform: scale(1.01);
+}
+
+.speechtxt {
+font-size: 28px;
+font-weight: bold;
+margin-bottom: 30px;
+text-transform: uppercase;
+color: var(--text-color);
+}
+
+.input-container {
+display: flex;
+justify-content: center;
+align-items: center;
+gap: 10px;
+margin-bottom: 20px;
+}
+
+.input-container input {
+padding: 14px;
+border: 2px solid #dfe6e9;
+border-radius: 8px;
+flex-grow: 1;
+font-size: 16px;
+background: var(--main-bg);
+color: var(--text-color);
+}
+
+.button {
+background: linear-gradient(135deg, var(--chat-bubble-user), var(--chat-bubble-bot));
+color: white;
+border: none;
+padding: 12px 20px;
+border-radius: 8px;
+cursor: pointer;
+font-size: 16px;
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+transition: all 0.3s;
+}
+
+.button:hover {
+transform: translateY(-2px);
+box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.chat-container {
+max-height: 400px;
+overflow-y: auto;
+margin: 20px 0;
+padding: 10px;
+border-radius: 10px;
+background: rgba(255, 255, 255, 0.1);
+}
+
+.chat-bubble {
+margin: 10px 0;
+padding: 15px;
+border-radius: 15px;
+max-width: 80%;
+word-wrap: break-word;
+position: relative;
+color: white;
+animation: fadeIn 0.3s ease-in;
+}
+
+.user-message {
+background-color: var(--chat-bubble-user);
+margin-left: auto;
+border-bottom-right-radius: 5px;
+}
+
+.bot-message {
+background-color: var(--chat-bubble-bot);
+margin-right: auto;
+border-bottom-left-radius: 5px;
+}
+
+.controls {
+display: flex;
+justify-content: space-between;
+align-items: center;
+margin-top: 20px;
+}
+
+.history-panel {
+position: fixed;
+right: -400px;
+top: 0;
+width: 350px;
+height: 100vh;
+background: var(--history-bg);
+box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+padding: 20px;
+overflow-y: auto;
+transition: right 0.3s ease;
+z-index: 1000;
+}
+
+.history-panel.active {
+right: 0;
+}
+
+.history-item {
+padding: 10px;
+margin: 10px 0;
+border-radius: 8px;
+background: rgba(0, 0, 0, 0.1);
+cursor: pointer;
+transition: transform 0.2s;
+}
+
+.history-item:hover {
+transform: translateX(-5px);
+}
+
+@keyframes fadeIn {
+from { opacity: 0; transform: translateY(10px); }
+to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 768px) {
+.history-panel {
+width: 100%;
+right: -100%;
+}
+
+.input-container {
+flex-wrap: wrap;
+}
+
+.input-container input {
+width: 100%;
+margin-bottom: 10px;
+}
+}
+
+.audio-controls {
+display: flex;
+gap: 10px;
+justify-content: center;
+align-items: center;
+margin-top: 5px;
+}
+
+
+
+.audio-button {
+background: none;
+border: none;
+cursor: pointer;
+padding: 5px;
+border-radius: 50%;
+transition: all 0.3s;
+color: var(--text-color);
+display: flex;
+align-items: center;
+justify-content: center;
+}
+
+.audio-button:hover {
+background: rgba(108, 92, 231, 0.1);
+transform: scale(1.1);
+}
+
+.audio-button svg {
+width: 20px;
+height: 20px;
+}
+
+.chat-bubble {
+/* ... (previous chat-bubble styles) ... */
+display: flex;
+flex-direction: column;
+}
+
+.message-content {
+margin-bottom: 5px;
+}
+
+.speaking {
+animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+0% { opacity: 1; }
+50% { opacity: 0.5; }
+100% { opacity: 1; }
+}
+.button.delete {
+background-color: #e74c3c;
+color: #fff;
+padding: 5px 10px;
+font-size: 14px;
+border-radius: 5px;
+cursor: pointer;
+transition: background 0.3s ease;
+}
+
+.button.delete:hover {
+background-color: #c0392b;
+}
+/* Navigation styles */
+.nav-container {
+position: fixed;
+top: 0;
+right: 0;
+padding: 20px;
+display: flex;
+gap: 15px;
+z-index: 1000;
+}
+
+.nav-button {
+background: linear-gradient(135deg, var(--chat-bubble-user), var(--chat-bubble-bot));
+color: white;
+border: none;
+padding: 8px 15px;
+border-radius: 6px;
+cursor: pointer;
+font-size: 14px;
+transition: all 0.3s;
+text-decoration: none;
+}
+
+.nav-button:hover {
+transform: translateY(-2px);
+box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Footer styles */
+.footer {
+position: fixed;
+bottom: 0;
+left: 0;
+width: 100%;
+text-align: center;
+padding: 10px;
+background-color: var(--main-bg);
+color: var(--text-color);
+font-size: 14px;
+box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+z-index: 999;
+}
+
+/* Adjust main container to account for footer */
+.main {
+margin-bottom: 60px;
+}
+
+@media (max-width: 768px) {
+.nav-container {
+position: static;
+justify-content: center;
+padding: 10px;
+flex-wrap: wrap;
+}
+
+.main {
+margin-top: 0;
+}
+}
+</style>
+
+</head>
+<body>
+<div class="main">
+<div class="speechtxt">VoxBot</div>
+<div class="chat-container" id="chatContainer"></div>
+<div class="input-container">
+<!-- <button class="button" onclick="startSpeechRecognition()" aria-label="Start voice recognition">
+</button> -->
+<input type="text" id="speechToText" placeholder="Type or Speak Your Query">
+<button id="sendMessage" class="button" onclick="sendQuery()" aria-label="Submit Query">Send</button>
+</div>
+<div class="controls">
+<div class="toggle-container">
+<label class="toggle-label">Dark Mode</label>
+<input type="checkbox" id="darkModeToggle" onchange="toggleDarkMode()">
+</div>
+<button class="button" onclick="startNewChat()">New Chat</button> 
+<a href="/journal" class="nav-button">Go to Journal</a>
+
+<button class="button" onclick="toggleHistory()">History</button>
+</div>
+</div>
+
+<div class="history-panel" id="historyPanel">
+<h2>Chat History</h2>
+<div id="historyContainer"></div>
+</div>
+
+<div class="nav-container">
+<a href="/contact" class="nav-button">Contact</a>
+<button onclick="window.location.href='{% url 'signIn' %}'" class="nav-button">logout</button>
+</div>
+
+<!-- Add this right before the closing </body> tag -->
+<footer class="footer">
+&copy; 2025 VoxBot. All rights reserved.
+</footer>
+
+<script>
+// Speech Recognition Setup
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+const recognition = new SpeechRecognition();
+
+// Chat History Management
+let chatHistory = JSON.parse(localStorage.getItem('chatHistory') || '[]');
+
+function updateChatDisplay() {
+const container = document.getElementById('chatContainer');
+container.innerHTML = chatHistory.map(chat => `
+<div class="chat-bubble user-message">${chat.question}</div>
+<div class="chat-bubble bot-message">${chat.answer}</div>
+`).join('');
+container.scrollTop = container.scrollHeight;
+
+// Update history panel
+document.getElementById('historyContainer').innerHTML = chatHistory.map((chat, index) => `
+<div class="history-item" onclick="loadHistoryItem(${index})">
+<strong>Q:</strong> ${chat.question.substring(0, 50)}...
+</div>
+`).join('');
+}
+
+function saveToHistory(question, answer) {
+chatHistory.push({ question, answer });
+localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+updateChatDisplay();
+}
+
+function loadHistoryItem(index) {
+const item = chatHistory[index];
+document.getElementById('speechToText').value = item.question;
+toggleHistory();
+}
+
+function toggleHistory() {
+document.getElementById('historyPanel').classList.toggle('active');
+}
+
+function startSpeechRecognition() {
+recognition.start();
+}
+
+recognition.onresult = (event) => {
+const userSpeech = event.results[0][0].transcript;
+document.getElementById('speechToText').value = userSpeech;
+};
+// Function to start a new chat
+function startNewChat() {
+    if (confirm('Are you sure you want to start a new chat? This will clear the current conversation.')) {
+        chatHistory = [];  // Clear the chat history
+        localStorage.setItem('chatHistory', JSON.stringify(chatHistory));  // Update local storage
+        updateChatDisplay();  // Refresh the display
+        document.getElementById('speechToText').value = '';  // Clear input field
+    }
+}
+
+function sendQuery() {
+const query = document.getElementById('speechToText').value.trim();
+if (!query) {
+alert('Please type or speak a query.');
+return;
+}
+
+// Show user message immediately
+const userMessage = `${query}`;
+
+fetch('/get_ai_response/', {
+method: 'POST',
+headers: {
+'Content-Type': 'application/json',
+'X-CSRFToken': '{{ csrf_token }}'
+},
+body: JSON.stringify({ query: query })
+})
+.then(response => response.json())
+.then(data => {
+if (data.response) {
+saveToHistory(userMessage, data.response);
+document.getElementById('speechToText').value = '';
+} else {
+saveToHistory(userMessage, 'Error: ' + (data.error || 'Unknown error occurred.'));
+}
+})
+.catch(error => {
+saveToHistory(userMessage, 'Error: ' + error);
+});
+} 
+
+// Speech Synthesis Setup
+const speechSynthesis = window.speechSynthesis;
+let currentUtterance = null;
+let currentSpeakingBubble = null;
+
+function createMessageElement(message, isUser) {
+const bubbleClass = isUser ? 'user-message' : 'bot-message';
+return `
+<div class="chat-bubble ${bubbleClass}">
+<div class="message-content">${message}</div>
+${!isUser ? `
+<div class="audio-controls">
+<button class="audio-button play" onclick="toggleSpeech(this, '${encodeURIComponent(message)}')" aria-label="Play/Pause speech">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<polygon points="5 3 19 12 5 21 5 3"></polygon>
+</svg>
+</button>
+<button class="audio-button stop" onclick="stopSpeech()" aria-label="Stop speech">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+</svg>
+</button>
+</div>
+` : ''}
+</div>
+`;
+}
+
+function updateChatDisplay() {
+const container = document.getElementById('chatContainer');
+container.innerHTML = chatHistory.map(chat => 
+createMessageElement(chat.question, true) +
+createMessageElement(chat.answer, false)
+).join('');
+container.scrollTop = container.scrollHeight;
+
+document.getElementById('historyContainer').innerHTML = chatHistory.map((chat, index) => `
+<div class="history-item" onclick="loadHistoryItem(${index})">
+<strong>Q:</strong> ${chat.question.substring(0, 50)}...
+</div>
+`).join('');
+}
+
+function toggleSpeech(button, text) {
+const decodedText = decodeURIComponent(text);
+
+if (currentUtterance && speechSynthesis.speaking) {
+if (speechSynthesis.paused) {
+speechSynthesis.resume();
+button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<rect x="6" y="4" width="4" height="16"></rect>
+<rect x="14" y="4" width="4" height="16"></rect>
+</svg>`;
+} else {
+speechSynthesis.pause();
+button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<polygon points="5 3 19 12 5 21 5 3"></polygon>
+</svg>`;
+}
+} else {
+stopSpeech(); // Stop any existing speech
+
+currentUtterance = new SpeechSynthesisUtterance(decodedText);
+currentSpeakingBubble = button.closest('.chat-bubble');
+currentSpeakingBubble.classList.add('speaking');
+
+currentUtterance.onend = () => {
+currentSpeakingBubble.classList.remove('speaking');
+button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<polygon points="5 3 19 12 5 21 5 3"></polygon>
+</svg>`;
+};
+
+button.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<rect x="6" y="4" width="4" height="16"></rect>
+<rect x="14" y="4" width="4" height="16"></rect>
+</svg>`;
+
+speechSynthesis.speak(currentUtterance);
+}
+}
+
+function stopSpeech() {
+if (currentUtterance) {
+speechSynthesis.cancel();
+if (currentSpeakingBubble) {
+currentSpeakingBubble.classList.remove('speaking');
+const playButton = currentSpeakingBubble.querySelector('.play');
+if (playButton) {
+playButton.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<polygon points="5 3 19 12 5 21 5 3"></polygon>
+</svg>`;
+}
+}
+currentUtterance = null;
+currentSpeakingBubble = null;
+}
+}
+
+// Add event listener for page unload to stop speech
+window.addEventListener('beforeunload', stopSpeech);
+
+// ... (rest of the previous JavaScript code) ...
+
+function updateChatDisplay() {
+const container = document.getElementById('chatContainer');
+container.innerHTML = chatHistory.map(chat =>
+createMessageElement(chat.question, true) +
+createMessageElement(chat.answer, false)
+).join('');
+container.scrollTop = container.scrollHeight;
+
+// Update history panel
+document.getElementById('historyContainer').innerHTML = chatHistory.map((chat, index) => `
+<div class="history-item">
+<strong>Q:</strong> ${chat.question.substring(0, 50)}...
+<button class="button" style="margin-left: 10px;" onclick="deleteChat(${index})">Delete</button>
+</div>
+`).join('');
+}
+
+function deleteChat(index) {
+if (confirm('Are you sure you want to delete this chat?')) {
+chatHistory.splice(index, 1); // Remove the selected chat
+localStorage.setItem('chatHistory', JSON.stringify(chatHistory)); // Update localStorage
+updateChatDisplay(); // Refresh the display
+}
+}
+
+
+// Dark Mode Toggle
+const toggleDarkMode = () => {
+const isChecked = document.getElementById('darkModeToggle').checked;
+if (isChecked) {
+document.body.classList.add('dark-mode');
+localStorage.setItem('darkMode', 'enabled');
+} else {
+document.body.classList.remove('dark-mode');
+localStorage.setItem('darkMode', 'disabled');
+}
+};
+
+// Initialize
+const currentDarkMode = localStorage.getItem('darkMode');
+if (currentDarkMode === 'enabled') {
+document.body.classList.add('dark-mode');
+document.getElementById('darkModeToggle').checked = true;
+}
+
+// Load chat history on page load
+updateChatDisplay();
+
+function logout() {
+// Add your logout logic here
+window.location.href = '/logout';
+}
+
+// Update the copyright year automatically
+document.addEventListener('DOMContentLoaded', function() {
+const year = new Date().getFullYear();
+document.querySelector('.footer').innerHTML = `&copy; ${year} VoxBot. All rights reserved.`;
+});
+
+</script>
+</body>
+</html>
+
+

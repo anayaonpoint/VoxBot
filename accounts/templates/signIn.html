@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Sign In</title>
+ <style>
+  /* General Styles */
+  body {
+   font-family: 'Arial', sans-serif;
+   background: #f0f0f0;
+   margin: 0;
+   padding: 0;
+   transition: background 0.3s, color 0.3s;
+  }
+  body.dark-mode {
+   background: #121212;
+   color: #e0e0e0;
+  }
+  h1, h2, p {
+   margin: 0;
+   padding: 0;
+  }
+  header {
+   text-align: center;
+   margin: 10px 0; /* Reduced margin for spacing */
+  }
+  .container {
+   display: flex;
+   justify-content: center;
+   align-items: center;
+   min-height: 80vh;
+  }
+  .sign-in-section, .sign-up-section {
+   background: white;
+   border-radius: 8px;
+   box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+   padding: 20px;
+   margin: 10px;
+   flex: 1;
+   max-width: 400px;
+   transition: background 0.3s, color 0.3s;
+  }
+  .sign-in-section.dark-mode, .sign-up-section.dark-mode {
+   background: #1e1e1e;
+   color: #e0e0e0;
+  }
+  .sign-up-section {
+   flex: 1.5;
+  }
+  .social-icons {
+   display: flex;
+   justify-content: center;
+   gap: 10px;
+   margin-bottom: 20px;
+  }
+  .social-icons button {
+   width: 40px;
+   height: 40px;
+   border-radius: 50%;
+   border: none;
+   background-color: #ddd;
+   cursor: pointer;
+   font-size: 18px;
+   font-weight: bold;
+   color: #555;
+   transition: background 0.3s, color 0.3s;
+  }
+  body.dark-mode .social-icons button {
+   background-color: #333;
+   color: #bbb;
+  }
+  input {
+   display: block;
+   width: calc(100% - 20px);
+   margin: 10px auto;
+   padding: 10px;
+   border: 1px solid #ddd;
+   border-radius: 4px;
+   transition: background 0.3s, color 0.3s;
+  }
+  body.dark-mode input {
+   background: #2a2a2a;
+   color: #e0e0e0;
+   border-color: #444;
+  }
+  button {
+   display: block;
+   width: 100%;
+   padding: 10px;
+   background: #6c63ff;
+   color: white;
+   border: none;
+   border-radius: 4px;
+   cursor: pointer;
+   transition: background 0.3s;
+  }
+  button:hover {
+   background: #5b53e0;
+  }
+  footer {
+   text-align: center;
+   margin-top: 20px;
+  }
+  .dark-mode {
+   --background: #2d3436;
+   --text-color: #dfe6e9;
+   --main-bg: #34495e;
+   --chat-bubble-user: #4834d4;
+   --chat-bubble-bot: #00a8a8;
+   --history-bg: rgba(52, 73, 94, 0.95);
+  }
+  .sign-in-button{
+   margin-top: 10px;
+  }
+  .sign-up-button{
+   margin-top: 10px;
+  }
+ </style>
+</head>
+<body>
+ <header>
+    <h1>Welcome to VoxBot</h1>
+    <h3>Your Mental Health Companion</h3> </header>
+ <form action="{% url 'signIn' %}" method="post">
+  {% csrf_token %}
+  <div class="container">
+   <div id="signInSection" class="sign-in-section">
+    <h2>Sign In</h2>
+    {% if error %}
+     <p class="error-message">{{ error }}</p>
+    {% endif %}
+    <div class="social-icons">
+     <button type="button">G+</button>
+     <button type="button">f</button>
+     <button type="button">in</button>
+    </div>
+    <p>or use your email and password</p>
+    <input type="email" name="email" placeholder="Email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <a href="{% url 'forgetPass' %}">Forgot Your Password?</a>
+    <button type="button" class="sign-in-button" onclick="window.location.href='{% url 'main' %}'">Sign In</button>
+   </div>
+   <div id="signUpSection" class="sign-up-section">
+    {% if messages %}
+ <ul>
+  {% for message in messages %}
+   <li>{{ message }}</li>
+  {% endfor %}
+ </ul>
+{% endif %}
+    <h2>Hello, Friend!</h2>
+    <p>If this is your first time logging in, please register here.</p>
+    <button type="button" class="sign-up-button" onclick="window.location.href='{% url 'signup' %}'">Sign Up</button>
+   </div>
+  </div>
+ </form>
+ <button class="dark-light-toggle" onclick="toggleDarkMode()">Dark Mode</button>
+ <footer>
+  <p>&copy; 2025 - Voxbot</p>
+ </footer>
+
+ <script>
+  function toggleDarkMode() {
+   document.body.classList.toggle('dark-mode');
+   document.querySelectorAll('.sign-in-section, .sign-up-section').forEach(section => {
+    section.classList.toggle('dark-mode');
+   });
+  }
+ </script>
+</body>
+</html>
+
+

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Contact VoxBot</title>
+ <style>
+  :root {
+   --background: #abb9c8;
+   --text-color: #444;
+   --main-bg: #ffffff;
+   --chat-bubble-user: #61606a;
+   --chat-bubble-bot: #105e5e;
+  }
+
+  .dark-mode {
+   --background: #2d3436;
+   --text-color: #dfe6e9;
+   --main-bg: #34495e;
+   --chat-bubble-user: #4834d4;
+   --chat-bubble-bot: #00a8a8;
+  }
+
+  body {
+   font-family: 'Roboto', Arial, sans-serif;
+   background: var(--background);
+   margin: 0;
+   padding: 0;
+   min-height: 100vh;
+   color: var(--text-color);
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+  }
+
+  .contact-container {
+   background-color: var(--main-bg);
+   padding: 40px;
+   border-radius: 20px;
+   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+   width: 90%;
+   max-width: 600px;
+   margin: 10px;
+  }
+
+  .contact-header {
+   text-align: center;
+   margin-bottom: 30px;
+  }
+
+  .contact-header h1 {
+   color: var(--text-color);
+   font-size: 2.5em;
+   margin-bottom: 10px;
+  }
+
+  .contact-form {
+   display: flex;
+   flex-direction: column;
+   gap: 20px;
+  }
+
+  .form-group {
+   display: flex;
+   flex-direction: column;
+   gap: 8px;
+  }
+
+  .form-group label {
+   font-weight: bold;
+   color: var(--text-color);
+  }
+
+  .form-group input,
+  .form-group textarea {
+   padding: 12px;
+   border: 2px solid #dfe6e9;
+   border-radius: 8px;
+   font-size: 16px;
+   background: var(--main-bg);
+   color: var(--text-color);
+   resize: vertical;
+  }
+
+  .form-group textarea {
+   min-height: 100px;
+  }
+
+  .submit-btn {
+   background: linear-gradient(135deg, var(--chat-bubble-user), var(--chat-bubble-bot));
+   color: white;
+   border: none;
+   padding: 15px 30px;
+   border-radius: 8px;
+   cursor: pointer;
+   font-size: 18px;
+   font-weight: bold;
+   transition: transform 0.3s, box-shadow 0.3s;
+   margin-top: 10px;
+   margin-bottom: 10px;
+  }
+
+  .submit-btn:hover {
+   transform: translateY(-2px);
+   box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  }
+
+  .back-btn {
+   text-decoration: none;
+   color: var(--text-color);
+   padding: 10px 20px;
+   border-radius: 8px;
+   transition: background-color 0.3s;
+   margin-top: 20px;
+   display: inline-block;
+  }
+
+  .back-btn:hover {
+   background-color: rgba(0, 0, 0, 0.1);
+  }
+
+  .contact-info {
+   text-align: center;
+   margin-top: 20px;
+   padding-top: 20px;
+   border-top: 1px solid #dfe6e9;
+  }
+
+  .contact-info p {
+   margin: 10px 0;
+  }
+
+  @media (max-width: 768px) {
+   .contact-container {
+    padding: 10px;
+    margin: 10px;
+   }
+  }
+ </style>
+</head>
+<body>
+ <div class="contact-container">
+  <div class="contact-header">
+   <h1>Contact Us</h1>
+   <p>We'd love to hear from you. Send us a message!</p>
+  </div>
+
+  <form class="contact-form" onsubmit="event.preventDefault(); handleSubmit();">
+   <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" required>
+   </div>
+
+   <div class="form-group">
+    <label for="email">Email</label>
+    <input type="email" id="email" name="email" required>
+   </div>
+
+   <div class="form-group">
+    <label for="subject">Subject</label>
+    <input type="text" id="subject" name="subject" required>
+   </div>
+
+   <div class="form-group">
+    <label for="message">Message</label>
+    <textarea id="message" name="message" required></textarea>
+   </div>
+
+   <button type="submit" class="submit-btn">Send Message</button>
+  </form>
+
+  <div class="contact-info">
+   <p> Anaya Nilotse & Yatharth Phulwani </p>
+   <p>support@voxbot.com</p>
+   <p>(+91) 9575734863</p>
+  </div>
+
+  <button onclick="window.location.href='{% url 'main' %}'">Back to Chat</button>
+ </div>
+
+ <script>
+  function handleSubmit() {
+   // Add your form submission logic here
+   alert('Message sent successfully!');
+   // Reset form
+   document.querySelector('.contact-form').reset();
+  }
+ </script>
+</body>
+</html>
+
