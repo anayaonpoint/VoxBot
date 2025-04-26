@@ -17,7 +17,7 @@ Follow these steps to get the project up and running on your local machine:
 bash
 Copy
 Edit
-git clone https://github.com/your-username/your-repository-name.git
+git clone https://github.com/anayaonpoint/VoxBot
 cd your-repository-name
 2. Set up a Virtual Environment
 We recommend using a virtual environment to manage dependencies. You can set it up with venv.
