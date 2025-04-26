@@ -139,7 +139,7 @@
     <input type="email" name="email" placeholder="Email" required>
     <input type="password" name="password" placeholder="Password" required>
     <a href="{% url 'forgetPass' %}">Forgot Your Password?</a>
-    <button type="button" class="sign-in-button" onclick="window.location.href='{% url 'main' %}'">Sign In</button>
+    <button type="submit" class="sign-in-button">Sign In</button>
    </div>
    <div id="signUpSection" class="sign-up-section">
     {% if messages %}
@@ -149,6 +149,12 @@
   {% endfor %}
  </ul>
 {% endif %}
+{% if messages %}
+{% for message in messages %}
+  <p style="color:red;">{{ message }}</p>
+{% endfor %}
+{% endif %}
+
     <h2>Hello, Friend!</h2>
     <p>If this is your first time logging in, please register here.</p>
     <button type="button" class="sign-up-button" onclick="window.location.href='{% url 'signup' %}'">Sign Up</button>

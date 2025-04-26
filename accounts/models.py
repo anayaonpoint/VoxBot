@@ -5,10 +5,12 @@ class UserProfile(models.Model):
  name = models.CharField(max_length=100)
  email = models.EmailField(max_length=100, unique=True)
  password = models.CharField(max_length=128) 
+ user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
 
  def __str__(self) -> str:
   return self.name 
- 
+ def __str__(self):
+        return self.user.username
 
 class History(models.Model):
  user = models.ForeignKey(User, on_delete=models.CASCADE)

@@ -4,6 +4,7 @@ from django.contrib import messages
 from .models import UserProfile 
 from .models import Journal
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.models import User
 
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import JsonResponse
@@ -16,26 +17,29 @@ import json
 genai.configure(api_key=os.getenv("GENAI_API_KEY"))
 
 def signIn(request):
- if request.method == 'POST':
-  email = request.POST.get('email')
-  password = request.POST.get('password')
-  if not email or not password:
-   messages.error(request, "Email and Password are required.")
-   return redirect('login') 
-  if not User.objects.filter(email=email).exists():
-   messages.error(request, "Email does not exist. Please sign up.")
-   return redirect('signup') # Redirect to the signup page
-  
-  # Authenticate the user
-  user = authenticate(request, username=email, password=password)
-  if user is not None:
-   login(request, user)
-   return redirect('home') # Replace 'home' with the name of your homepage
-  else:
-   messages.error(request, "Invalid email or password.")
-   return redirect('login')
- 
- return render(request, 'signIn.html') # Render the login page for GET requests
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        if not email or not password:
+            messages.error(request, "Email and Password are required.")
+            return redirect('signIn')
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, "Email does not exist. Please sign up.")
+            return redirect('signup')
+
+        user = authenticate(request, username=user.username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('main')  # or any dashboard/homepage
+        else:
+            messages.error(request, "Invalid email or password.")
+            return redirect('signIn')
+
+    return render(request, 'signIn.html')
 
 def contact(request):
  return render(request,"contact.html")
@@ -44,24 +48,28 @@ def logout(request):
  return render(request,"logout.html")
 
 def signup(request):
- if request.method == "POST":
-  name = request.POST.get("name")
-  email = request.POST.get("email")
-  password = request.POST.get("password")
+    if request.method == "POST":
+        name = request.POST.get("name")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
 
-  if UserProfile.objects.filter(email=email).exists():
-   return render(request, "signup.html", {"error": "Email is already registered."})
-  
-  if name and email and password:
-   hashed_password = make_password(password)
-   user_profile = UserProfile(name=name, email=email, password=hashed_password)
-   user_profile.save()
-   messages.success(request, "Account created successfully! Please sign in.")
-   return redirect("signIn")
-  else:
-   return render(request, "signup.html", {"error": "All fields are required."})
+        if User.objects.filter(email=email).exists():
+            return render(request, "signup.html", {"error": "Email is already registered."})
 
- return render(request, "signup.html")
+        if name and email and password:
+            username = email  # Set username as email
+            user = User.objects.create_user(username=username, email=email, password=password)
+            user.first_name = name
+            user.save()
+
+            # Optional: create linked UserProfile
+            UserProfile.objects.create(user=user, name=name, email=email)
+
+            messages.success(request, "Account created successfully! Please sign in.")
+            return redirect('signIn')
+        else:
+            return render(request, "signup.html", {"error": "All fields are required."})
+    return render(request, "signup.html")
 
 def forgetPass(request):
  if request.method == "POST":
@@ -79,33 +87,39 @@ def main(request):
  return render(request, "main.html")
 
 def get_ai_response(request):
- if request.method == "POST":
-  try:
-   # Parse the JSON data sent from the frontend
-   data = json.loads(request.body)
-   query = data.get("query", "").strip()
+    if request.method == "POST":
+        try:
+            data = json.loads(request.body)
+            query = data.get("query", "").strip()
 
-   if not query:
-    return JsonResponse({"error": "No query received"}, status=400)
+            if not query:
+                return JsonResponse({"error": "No query received"}, status=400)
 
-   # Initialize the model
-   model = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
-  
+            # Initialize the model
+            model = genai.GenerativeModel('gemini-2.5-pro-exp-03-25')
 
-   # Generate content using the correct method
-   response = model.generate_content(query)
+            # Compose the system prompt + user prompt
+            prompt = f"""
+You are VoxBot, a mental health companion chatbot. 
+You are empathetic, supportive, and non-judgmental. You do not offer medical advice. 
+You help users reflect, manage their emotions, and provide motivation.
+Always sound conversational and warm.
 
-   # Extract the response text
-   if response.text:
-    return JsonResponse({"response": response.text})
-   else:
-    return JsonResponse({"error": "No response generated"}, status=400)
+User said: {query}
+"""
 
-  except Exception as e:
-   return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+            # Generate content
+            response = model.generate_content(prompt)
 
- return JsonResponse({"error": "Invalid request method"}, status=405)
+            if response.text:
+                return JsonResponse({"response": response.text})
+            else:
+                return JsonResponse({"error": "No response generated"}, status=400)
 
+        except Exception as e:
+            return JsonResponse({"error": f"An error occurred: {str(e)}"}, status=500)
+
+    return JsonResponse({"error": "Invalid request method"}, status=405)
 def process_query(request):
  if request.method == "POST":
   query = request.POST.get('query', '')
